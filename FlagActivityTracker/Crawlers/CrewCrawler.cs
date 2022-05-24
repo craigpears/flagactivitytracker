@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace FlagActivityTracker.Crawlers
 {
-    public class CrewTrawler
+    public class CrewCrawler
     {
         private readonly FlagActivityTrackerDbContext _ctx;
         private readonly ICrewPageParser _crewPageParser;
         private readonly IPageScrapeService _pageScrapeService;
 
-        public CrewTrawler(FlagActivityTrackerDbContext ctx,
+        public CrewCrawler(FlagActivityTrackerDbContext ctx,
             ICrewPageParser crewPageParser,
             IPageScrapeService pageScrapeService)
         {
@@ -34,11 +34,9 @@ namespace FlagActivityTracker.Crawlers
             // TODO: scan blockading crews every 5 minutes
             // TODO: Change the tests that were based on 5 minutes for these
             var activelyJobbingCrews = _ctx.Crews.Where(x => x.JobbersLastSeen > anHourAgo && x.LastParsedDate < tenMinutesAgo).ToList();
-            var crewsToReprocess = _ctx.Crews.Where(x => x.ErrorCount > 0 && x.LastErrorDate < fiveMinutesAgo).ToList();
 
             var crewsToRefresh = _ctx.Crews.Where(x =>
-                   (x.LastParsedDate == null || x.LastParsedDate < anHourAgo)
-                && x.ErrorCount == 0
+                   x.LastParsedDate == null || x.LastParsedDate < anHourAgo
             )
                 .OrderByDescending(x => x.Voyages.Count)  // TODO: Add test + time limit the voyages?
                                                           // TODO: Prioritise large voyages over numerous ones
@@ -47,7 +45,6 @@ namespace FlagActivityTracker.Crawlers
             var crews = new List<Crew>();
             //crews.AddRange(activelyJobbingCrews); // TODO: Put this back in later, we just want to work out which are the crews with any activity for now
             crews.AddRange(crewsToRefresh);
-            crews.AddRange(crewsToReprocess);
 
             var pageScrapeRequests = crews.Select(x => new PageScrape
             {
@@ -88,7 +85,6 @@ namespace FlagActivityTracker.Crawlers
                 var newPirates = parsedCrewPage.JobbingPirates.Where(x => !_ctx.Pirates.Any(y => y.PirateName == x)).ToList();
                 _ctx.Pirates.AddRange(newPirates.Select(x => new Pirate { PirateName = x }));
                 crew.LastParsedDate = DateTime.UtcNow;
-                crew.ErrorCount = 0;
 
                 _ctx.SaveChanges();
 

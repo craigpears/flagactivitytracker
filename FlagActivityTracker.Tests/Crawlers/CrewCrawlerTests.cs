@@ -12,7 +12,7 @@ namespace FlagActivityTracker.Tests.Crawlers
     public class CrewTrawlerTests
     {
         protected FlagActivityTrackerDbContext _ctx;
-        protected CrewTrawler _crawler;
+        protected CrewCrawler _crawler;
         protected Mock<ICrewPageParser> _parser;
         protected Mock<IPageScrapeService> _pageScrapeService;
 
@@ -22,7 +22,7 @@ namespace FlagActivityTracker.Tests.Crawlers
             _parser = new Mock<ICrewPageParser>();
             _pageScrapeService = new Mock<IPageScrapeService>();
 
-            _crawler = new CrewTrawler(_ctx, _parser.Object, _pageScrapeService.Object);
+            _crawler = new CrewCrawler(_ctx, _parser.Object, _pageScrapeService.Object);
 
             _ctx.Crews.Add(new Crew { PPCrewId = 123 });
             _parser.Setup(x => x.ParsePage(It.IsAny<string>())).Returns(new ParsedCrewPage()
@@ -49,6 +49,9 @@ namespace FlagActivityTracker.Tests.Crawlers
             var crew = _ctx.Crews.Single();
             Assert.Equal("Bob's Pirates", crew.CrewName);
             Assert.NotNull(crew.LastParsedDate);
+
+            var pageScrape = _ctx.PageScrapes.Single();
+            Assert.True(pageScrape.Processed);
         }
 
         [Fact]
@@ -79,31 +82,6 @@ namespace FlagActivityTracker.Tests.Crawlers
             Assert.Equal("Bob's Pirates", crew.CrewName);
         }
         */
-
-        [Fact]
-        public void Should_Reprocess_Five_Minutes_After_An_Error()
-        {
-            _ctx.Crews.Single().LastErrorDate = DateTime.UtcNow;
-            _ctx.Crews.Single().ErrorCount = 1;
-            _ctx.SaveChanges();
-
-            // Shouldn't pick it up on the first pass
-            _crawler.GeneratePageScrapeRequests();
-            _crawler.ProcessPageScrapes();
-
-            var crew = _ctx.Crews.Single();
-            Assert.Null(crew.LastParsedDate);
-
-            // Should retry it after five minutes
-            _ctx.Crews.Single().LastErrorDate = DateTime.UtcNow.AddMinutes(-6);
-            _ctx.SaveChanges();
-
-            _crawler.GeneratePageScrapeRequests();
-            _crawler.ProcessPageScrapes();
-
-            crew = _ctx.Crews.Single();
-            Assert.NotNull(crew.LastParsedDate);
-        }
 
         [Fact]
         public void Should_Set_Jobbers_Last_Seen_When_There_Are_Jobbers()

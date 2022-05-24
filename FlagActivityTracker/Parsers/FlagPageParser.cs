@@ -10,55 +10,13 @@ using System.Xml;
 
 namespace FlagActivityTracker.Parsers
 {
-    public interface IFlagPageParser : IDisposable
+    public interface IFlagPageParser
     {
-        ParsedFlagPage? DownloadFlagPage(int puzzlePiratesFlagId);
-        string DownloadFlagPageHtml(int puzzlePiratesFlagId);
         ParsedFlagPage ParsePage(string flagPageHtml);
     }
 
     public class FlagPageParser : IFlagPageParser
     {
-        protected WebClient _webClient;
-
-        public FlagPageParser()
-        {
-            _webClient = new WebClient();
-        }
-
-        public void Dispose()
-        {
-            if (_webClient != null)
-                _webClient.Dispose();
-        }
-        public ParsedFlagPage? DownloadFlagPage(int puzzlePiratesFlagId)
-        {
-            // TODO: Audit the downloaded HTML pages in the database?
-            var pageHtml = DownloadFlagPageHtml(puzzlePiratesFlagId);
-            if (pageHtml == "")
-                return null;
-
-            var parsedFlagPage = ParsePage(pageHtml);
-            return parsedFlagPage;
-        }
-
-        public string DownloadFlagPageHtml(int puzzlePiratesFlagId)
-        {
-            var pageUrl = $"https://emerald.puzzlepirates.com/yoweb/flag/info.wm?flagid={puzzlePiratesFlagId}&classic=false";
-            var proxyUrl = $"http://api.scraperapi.com?api_key=03339515441ba3541a70111efe98de57&url={pageUrl}";
-            string pageHtml = "";
-            try
-            {
-                pageHtml = _webClient.DownloadString(proxyUrl);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine($"Exception loading {pageUrl}");
-            }
-
-            return pageHtml;
-        }
-
         public ParsedFlagPage ParsePage(string flagPageHtml)
         {
             var parsedFlagPage = new ParsedFlagPage();

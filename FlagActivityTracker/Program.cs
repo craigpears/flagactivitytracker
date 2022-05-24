@@ -31,18 +31,23 @@ while(true)
     var pageScrapeService = new PageScrapeService(context);
 
     var piratePageParser = new PiratePageParser();
-    var pirateCrawler = new PirateCrawler(context, piratePageParser);
-    pirateCrawler.PopulatePirates();
+    var pirateCrawler = new PirateCrawler(context, piratePageParser, pageScrapeService);
 
     var crewPageParser = new CrewPageParser();
-    var crewCrawler = new CrewTrawler(context, crewPageParser, pageScrapeService);
-    crewCrawler.GeneratePageScrapeRequests();
-    pageScrapeService.DownloadPages();
-    crewCrawler.ProcessPageScrapes();
+    var crewCrawler = new CrewCrawler(context, crewPageParser, pageScrapeService);
 
     var flagPageParser = new FlagPageParser();
-    var flagTrawler = new FlagTrawler(context, flagPageParser);
-    flagTrawler.TrawlFlags();
+    var flagCrawler = new FlagCrawler(context, flagPageParser, pageScrapeService);
+
+    pirateCrawler.GeneratePageScrapeRequests();
+    crewCrawler.GeneratePageScrapeRequests();
+    flagCrawler.GeneratePageScrapeRequests();
+
+    pageScrapeService.DownloadPages();
+
+    pirateCrawler.ProcessPageScrapes();
+    crewCrawler.ProcessPageScrapes();
+    flagCrawler.ProcessPageScrapes();
 
     var voyageProcessor = new VoyageProcessor(context);
     voyageProcessor.ProcessJobbingActivity();
@@ -55,7 +60,7 @@ while(true)
 
     Console.WriteLine("Sleeping...");
     var oneMinute = 1000 * 60;
-    Thread.Sleep(100 * oneMinute);
+    Thread.Sleep(oneMinute);
 }
 
 /*

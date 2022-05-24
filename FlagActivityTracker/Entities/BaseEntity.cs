@@ -10,7 +10,5 @@ namespace FlagActivityTracker.Entities
     {
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? LastParsedDate { get; set; }
-        public DateTime? LastErrorDate { get; set; }
-        public int ErrorCount { get; set; }
     }
 }

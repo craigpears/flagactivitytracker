@@ -1,6 +1,7 @@
 ﻿using FlagActivityTracker.Database;
 using FlagActivityTracker.Entities;
 using FlagActivityTracker.Parsers;
+using FlagActivityTracker.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,67 +14,90 @@ namespace FlagActivityTracker.Crawlers
     {
         private readonly FlagActivityTrackerDbContext _ctx;
         private readonly IPiratePageParser _piratePageParser;
+        private readonly IPageScrapeService _pageScrapeService;
 
         public PirateCrawler(FlagActivityTrackerDbContext ctx,
-            IPiratePageParser piratePageParser)
+            IPiratePageParser piratePageParser,
+            IPageScrapeService pageScrapeService)
         {
             _ctx = ctx;
             _piratePageParser = piratePageParser;
+            _pageScrapeService = pageScrapeService;
         }
 
-        public void PopulatePirates()
+        public void GeneratePageScrapeRequests()
         {
-            var fiveMinutesAgo = DateTime.UtcNow.AddMinutes(-5);
             var piratesToPopulate = _ctx.Pirates
                 .Where(x => x.LastParsedDate == null)
-                .Where(x => x.LastErrorDate == null || x.LastErrorDate < fiveMinutesAgo)
                 .ToList();
 
-            foreach (var pirate in piratesToPopulate)
+            var pageScrapeRequests = piratesToPopulate.Select(x => new PageScrape
             {
-                Console.WriteLine($"Crawling Pirate - {pirate.PirateName}");
-                var parsedPiratePage = _piratePageParser.DownloadPiratePage(pirate.PirateName);
-                if(parsedPiratePage != null)
+                PageType = PageType.Pirate,
+                EntityId = x.PirateId,
+                PuzzlePiratesId = x.PirateName.ToString(),
+                EntityName = x.PirateName
+            }).ToList();
+
+            _pageScrapeService.QueuePageScrapeRequests(pageScrapeRequests);
+        }
+
+        public void ProcessPageScrapes()
+        {
+            var pageScrapesToProcess = _ctx.PageScrapes.Where(x => x.PageType == PageType.Pirate && !x.Processed && x.DownloadedDate != null).ToList();
+            foreach (var pageScrape in pageScrapesToProcess)
+            {
+                ProcessPageScrape(pageScrape);
+            }
+        }
+
+        public void ProcessPageScrape(PageScrape pageScrape)
+        {
+            try
+            {
+                Console.WriteLine($"Processing pirate page for {pageScrape.EntityName}");
+
+                var pirate = _ctx.Pirates.Single(x => x.PirateId == pageScrape.EntityId);
+                var parsedPiratePage = _piratePageParser.ParsePage(pageScrape.DownloadedHtml);
+
+                if (parsedPiratePage.PPCrewId != null)
                 {
-                    if (parsedPiratePage.PPCrewId != null)
+                    var crew = _ctx.Crews.SingleOrDefault(x => x.PPCrewId == parsedPiratePage.PPCrewId);
+                    Flag? flag = null;
+
+                    if (parsedPiratePage.PPFlagId != null)
                     {
-                        var crew = _ctx.Crews.SingleOrDefault(x => x.PPCrewId == parsedPiratePage.PPCrewId);
-                        Flag? flag = null;
+                        flag = _ctx.Flags.SingleOrDefault(x => x.PPFlagId == parsedPiratePage.PPFlagId);
 
-                        if(parsedPiratePage.PPFlagId != null) 
+                        if (flag == null)
                         {
-                            flag = _ctx.Flags.SingleOrDefault(x => x.PPFlagId == parsedPiratePage.PPFlagId);
-
-                            if (flag == null)
-                            {
-                                flag = new Flag { PPFlagId = (int)parsedPiratePage.PPFlagId };
-                                _ctx.Flags.Add(flag);
-                                _ctx.SaveChanges();
-                            }
-                        }
-
-                        if (crew == null)
-                        {
-                            crew = new Crew { PPCrewId = (int)parsedPiratePage.PPCrewId, FlagId = flag?.FlagId };
-                            _ctx.Crews.Add(crew);
+                            flag = new Flag { PPFlagId = (int)parsedPiratePage.PPFlagId };
+                            _ctx.Flags.Add(flag);
                             _ctx.SaveChanges();
                         }
-
-                        pirate.CrewId = crew.CrewId;
                     }
 
-                    pirate.LastParsedDate = DateTime.UtcNow;
-                    pirate.ErrorCount = 0;
+                    if (crew == null)
+                    {
+                        crew = new Crew { PPCrewId = (int)parsedPiratePage.PPCrewId, FlagId = flag?.FlagId };
+                        _ctx.Crews.Add(crew);
+                        _ctx.SaveChanges();
+                    }
+
+                    pirate.CrewId = crew.CrewId;
                 }
-                else
-                {
-                    pirate.LastErrorDate = DateTime.UtcNow;
-                    pirate.ErrorCount++;
-                }
+
+                pirate.LastParsedDate = DateTime.UtcNow;
+                pageScrape.Processed = true;
 
                 _ctx.SaveChanges();
-            }
 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing pirate page for {pageScrape.EntityName} - {ex.Message}");
+            }
         }
+
     }
 }

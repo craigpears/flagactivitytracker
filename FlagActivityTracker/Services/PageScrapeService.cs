@@ -45,9 +45,12 @@ namespace FlagActivityTracker.Services
             var requests = _ctx.PageScrapes.Where(x => x.DownloadedDate == null).ToList();
             using var httpClient = new HttpClient();
 
-            foreach (var request in requests)
+            Parallel.ForEach(requests, new ParallelOptions { MaxDegreeOfParallelism = 5 }, request =>
             {
-                Console.WriteLine($"Scraping {request.PageType} page scrape request for {request.EntityName} ({request.PuzzlePiratesId})");
+                var context = new FlagActivityTrackerDbContext();
+                context.Attach(request);
+
+                Console.WriteLine($"Scraping {request.PageType} page for {request.EntityName} ({request.PuzzlePiratesId})");
 
                 string pageUrl = request.PageType switch
                 {
@@ -80,7 +83,7 @@ namespace FlagActivityTracker.Services
                     request.Attempts++;
                     _ctx.SaveChanges();
                 }
-            }
+            });
         }
     }
 }

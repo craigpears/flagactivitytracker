@@ -12,55 +12,13 @@ using System.Xml;
 
 namespace FlagActivityTracker.Parsers
 {
-    public interface IPiratePageParser : IDisposable
+    public interface IPiratePageParser
     {
-        ParsedPiratePage? DownloadPiratePage(string pirateName);
-        string DownloadPiratePageHtml(string pirateName);
         ParsedPiratePage ParsePage(string piratePageHtml);
     }
 
     public class PiratePageParser : IPiratePageParser
     {
-        protected WebClient _webClient;
-
-        public PiratePageParser()
-        {
-            _webClient = new WebClient();
-        }
-
-        public void Dispose()
-        {
-            if (_webClient != null)
-                _webClient.Dispose();
-        }
-        public ParsedPiratePage? DownloadPiratePage(string pirateName)
-        {
-            // TODO: Audit the downloaded HTML pages in the database?
-            var pageHtml = DownloadPiratePageHtml(pirateName);
-            if (pageHtml == "")
-                return null;
-
-            var parsedPiratePage = ParsePage(pageHtml);
-            return parsedPiratePage;
-        }
-
-        public string DownloadPiratePageHtml(string pirateName)
-        {
-            var pageUrl = $"https://emerald.puzzlepirates.com/yoweb/pirate.wm?classic=false&target={pirateName}";
-            var proxyUrl = $"http://api.scraperapi.com?api_key=03339515441ba3541a70111efe98de57&url={pageUrl}";
-            string pageHtml = "";
-            try
-            {
-                pageHtml = _webClient.DownloadString(proxyUrl);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine($"Exception loading {pageUrl}");
-            }
-
-            return pageHtml;
-        }
-
         public ParsedPiratePage ParsePage(string piratePageHtml)
         {
             var parsedPiratePage = new ParsedPiratePage();
@@ -90,8 +48,6 @@ namespace FlagActivityTracker.Parsers
                 var flagLinkHref = flagLinkNode.Attributes["href"].Value;
                 parsedPiratePage.PPFlagId = int.Parse(new Regex("[0-9]+").Match(flagLinkHref).Value);
             }
-
-
 
             return parsedPiratePage;
         }
