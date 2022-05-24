@@ -141,5 +141,20 @@ namespace FlagActivityTracker.Tests.Crawlers
 
             Assert.Equal(2, _ctx.Pirates.ToList().Count);
         }
+
+        [Fact]
+        public void Should_Mark_Crews_As_Deleted()
+        {
+            _parser.Setup(x => x.ParsePage(It.IsAny<string>())).Returns(new ParsedCrewPage()
+            {
+                CrewDoesNotExist = true
+            });
+
+            _crawler.GeneratePageScrapeRequests();
+            _crawler.ProcessPageScrapes();
+
+            var crew = _ctx.Crews.Single();
+            Assert.NotNull(crew.DeletedDate);
+        }
     }
 }

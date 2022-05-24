@@ -75,13 +75,13 @@ namespace FlagActivityTracker.Services
                     }
 
                     request.DownloadedDate = DateTime.Now;
-                    _ctx.SaveChanges();
+                    context.SaveChanges();
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception loading {pageUrl}");
+                    Console.WriteLine($"Exception loading {pageUrl} - {ex.Message}");
                     request.Attempts++;
-                    _ctx.SaveChanges();
+                    context.SaveChanges();
                 }
             });
         }

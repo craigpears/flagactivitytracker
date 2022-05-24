@@ -56,6 +56,8 @@ while(true)
     /*
      *  War alert - send alerts for new voyages if they are flagged as at war
      *  Blockade Crews - Flag specific crews as being of interest to prioritise them, or do this based on historical max jobber counts?
+     *  
+     *  Dashboard with Signalr - show in real time jobber count jumps, activity feed with jobbers appearing + what flag they're from
      */
 
     Console.WriteLine("Sleeping...");

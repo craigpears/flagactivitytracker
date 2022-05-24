@@ -31,6 +31,9 @@
     <None Update="Parsers\Samples\angels_with_multiple_jobber_rows.crew.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Parsers\Samples\no_such_crew.crew.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Parsers\Samples\reverie_with_multiple_jobbers.crew.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

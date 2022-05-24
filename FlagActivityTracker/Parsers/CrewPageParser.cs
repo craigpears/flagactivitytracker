@@ -22,6 +22,12 @@ namespace FlagActivityTracker.Parsers
             var parsedCrewPage = new ParsedCrewPage();
 
             var xmlDoc = PageParserHelper.ParsePage(crewPageHtml);
+
+            if(xmlDoc.InnerText.Contains("Shiver me timbers: No such crew"))
+            {
+                return new ParsedCrewPage { CrewDoesNotExist = true };
+            }
+
             var crewNameCell = xmlDoc.SelectSingleNode("//body/table[1]/tr[1]/td[1]/table[1]/tr[2]/td[3]/font[1]/b");
             parsedCrewPage.CrewName = crewNameCell.InnerText;
 

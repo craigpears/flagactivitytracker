@@ -8,6 +8,7 @@ namespace FlagActivityTracker.Models
 {
     public class ParsedCrewPage
     {
+        public bool CrewDoesNotExist { get; set; }
         public string CrewName { get; set; }
         public List<String> JobbingPirates { get; set; } = new List<String>();
     }

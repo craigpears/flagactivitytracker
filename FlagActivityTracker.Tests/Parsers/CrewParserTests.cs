@@ -61,5 +61,15 @@ namespace FlagActivityTracker.Tests.Parsers
 
             Assert.Equal(10, crewWithManyJobbers.JobbingPirates.Count);
         }
+
+        [Fact]
+        public void Should_Identify_Crew_Does_Not_Exist_Messages()
+        {
+            var crewParser = new CrewPageParser();
+            var crewPageHtml = File.ReadAllText("./Parsers/Samples/no_such_crew.crew.html");
+            var noSuchCrew = crewParser.ParsePage(crewPageHtml);
+
+            Assert.True(noSuchCrew.CrewDoesNotExist);
+        }
     }
 }

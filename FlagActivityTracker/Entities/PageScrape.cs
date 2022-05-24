@@ -21,5 +21,6 @@ namespace FlagActivityTracker.Entities
         public string? DownloadedHtml { get; set; }
         public DateTime? DownloadedDate { get; set; }
         public int Attempts { get; set; }
+        public string? ProcessingErrorMessage { get; set; }
     }
 }

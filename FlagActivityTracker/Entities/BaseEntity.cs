@@ -10,5 +10,6 @@ namespace FlagActivityTracker.Entities
     {
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? LastParsedDate { get; set; }
+        public DateTime? DeletedDate { get; set; }
     }
 }

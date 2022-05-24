@@ -27,9 +27,14 @@ namespace FlagActivityTracker.Crawlers
 
         public void GeneratePageScrapeRequests()
         {
+            Console.WriteLine("Generating flag page scrape requests");
             var aDayAgo = DateTime.UtcNow.AddDays(-1);
 
-            var flagsToRefresh = _ctx.Flags.Where(x => x.LastParsedDate == null || x.LastParsedDate < aDayAgo).ToList();
+            var flagsToRefresh = _ctx.Flags.Where(x => 
+                (x.LastParsedDate == null || x.LastParsedDate < aDayAgo) 
+                && x.DeletedDate == null
+            )
+                .ToList();
 
             var pageScrapeRequests = flagsToRefresh.Select(x => new PageScrape
             {
@@ -80,7 +85,7 @@ namespace FlagActivityTracker.Crawlers
                     }
                 }
 
-                flag.LastParsedDate = DateTime.UtcNow;
+                flag.LastParsedDate = (DateTime)pageScrape.DownloadedDate;
                 pageScrape.Processed = true;
 
                 _ctx.SaveChanges();
@@ -88,6 +93,9 @@ namespace FlagActivityTracker.Crawlers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error processing flag page for {pageScrape.EntityName} - {ex.Message}");
+                pageScrape.ProcessingErrorMessage = ex.Message;
+                pageScrape.Processed = true;
+                _ctx.SaveChanges();
             }
         }
     }

@@ -27,8 +27,10 @@ namespace FlagActivityTracker.Crawlers
 
         public void GeneratePageScrapeRequests()
         {
+            Console.WriteLine("Generating pirate page scrape requests");
+
             var piratesToPopulate = _ctx.Pirates
-                .Where(x => x.LastParsedDate == null)
+                .Where(x => x.LastParsedDate == null && x.DeletedDate == null)
                 .ToList();
 
             var pageScrapeRequests = piratesToPopulate.Select(x => new PageScrape
@@ -87,7 +89,7 @@ namespace FlagActivityTracker.Crawlers
                     pirate.CrewId = crew.CrewId;
                 }
 
-                pirate.LastParsedDate = DateTime.UtcNow;
+                pirate.LastParsedDate = (DateTime)pageScrape.DownloadedDate;
                 pageScrape.Processed = true;
 
                 _ctx.SaveChanges();
@@ -96,6 +98,9 @@ namespace FlagActivityTracker.Crawlers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error processing pirate page for {pageScrape.EntityName} - {ex.Message}");
+                pageScrape.ProcessingErrorMessage = ex.Message;
+                pageScrape.Processed = true;
+                _ctx.SaveChanges();
             }
         }
 
