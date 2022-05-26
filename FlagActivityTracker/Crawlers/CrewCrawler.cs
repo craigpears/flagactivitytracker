@@ -30,6 +30,7 @@ namespace FlagActivityTracker.Crawlers
             Console.WriteLine("Generating crew page scrape requests");
 
             var anHourAgo = DateTime.UtcNow.AddHours(-1);
+            var thirtyMinutesAgo = DateTime.UtcNow.AddMinutes(-30);
             var fiveMinutesAgo = DateTime.UtcNow.AddMinutes(-5);
             var tenMinutesAgo = DateTime.UtcNow.AddMinutes(-10);
 
@@ -37,8 +38,15 @@ namespace FlagActivityTracker.Crawlers
             // TODO: Change the tests that were based on 5 minutes for these
             var activelyJobbingCrews = _ctx.Crews.Where(x => x.JobbersLastSeen > anHourAgo && x.LastParsedDate < tenMinutesAgo && x.DeletedDate == null).ToList();
 
+            // TODO: Stop scanning crews that have been scanned several times and never job
+            // TODO: Have a setting to set frequency per crew so you can tune which ones to watch
+            // TODO: Scan crews that do large voyages even more often than those that just do small ones?
+
+            // TODO: Scan flag pages and get jobbing numbers from there rather than crews to cut down on page requests?
+
             var crewsToRefresh = _ctx.Crews.Where(x =>
-                   x.LastParsedDate == null || x.LastParsedDate < anHourAgo
+                   (x.LastParsedDate == null || x.LastParsedDate < thirtyMinutesAgo) && x.DeletedDate == null
+                   && x.Voyages.Any()
             )
                 .OrderByDescending(x => x.Voyages.Count)  // TODO: Add test + time limit the voyages?
                                                           // TODO: Prioritise large voyages over numerous ones
@@ -47,6 +55,12 @@ namespace FlagActivityTracker.Crawlers
             var crews = new List<Crew>();
             //crews.AddRange(activelyJobbingCrews); // TODO: Put this back in later, we just want to work out which are the crews with any activity for now
             crews.AddRange(crewsToRefresh);
+
+            // If there aren't many, pick some random crews to scan
+            var crewsCount = crews.Count; // TODO: Add tests for this
+            var randomCrewsToTake = Math.Max(0, 8 - crewsCount);
+            var randomCrewsToScan = _ctx.Crews.Where(x => x.DeletedDate == null).OrderBy(x => x.LastParsedDate).Take(randomCrewsToTake).ToList();
+            crews.AddRange(randomCrewsToScan);
 
             var pageScrapeRequests = crews.Select(x => new PageScrape
             {
@@ -95,6 +109,9 @@ namespace FlagActivityTracker.Crawlers
                     crew.LastParsedDate = (DateTime)pageScrape.DownloadedDate;
 
                     _ctx.SaveChanges();
+
+                    if (parsedCrewPage.JobbingPirates.Contains("Balloffire"))
+                        Console.WriteLine("Smoking hot gunner spotted!!!");
 
                     // TODO: Add tests for jobbing activity
                     var jobbingActivities = parsedCrewPage.JobbingPirates.Select(x => new JobbingActivity

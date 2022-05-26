@@ -24,6 +24,18 @@ Console.WriteLine("Hello, Pirates!");
  *  Time pirate first seen - did they all get first seen around similar times? (bulk creating new pirates after banning)
  *  Track mass pirate disappearance events (large number of previously active accounts all dropping off at a similar point in time) + watch for new accounts created shortly after?
  *  The size of their main crew?
+ *  Do they do anything other than piracy?
+ *  What rank/crew type are they in - are they a decent rank in a large crew/flag or in a crew/flag all by themselves?
+ *  Do the pirates have portraits?
+ *  Do they job in blockades?  
+ *  How long do they job for in blockades, or generally stay on a voyage?
+ *  Do they ever leave a voyage part way through or do they always stay?
+ *  Do they start jobbing during spikes that happen on one side of a blockade but not the other?
+ *  What houses are they roommates in or own - are there any expensive ones?
+ *  What trophys do they have?  Older pirates with 10 year trophies are unlikely to be bots
+ *  Do they have familiars?  If they do then it's unlikely to be a bot
+ *  Do they own any stalls/shops?
+ *  Do they have high experience/stats with other novice ables?
  */
 
 while(true)
@@ -58,49 +70,12 @@ while(true)
      *  Blockade Crews - Flag specific crews as being of interest to prioritise them, or do this based on historical max jobber counts?
      *  
      *  Dashboard with Signalr - show in real time jobber count jumps, activity feed with jobbers appearing + what flag they're from
+     *  
+     *  Add distinct pirate counts to voyages + max distinct jobbers at any one time
+     *  Scan flag pages to choose which crews to scan to save requests + scan more crews
      */
 
     Console.WriteLine("Sleeping...");
     var oneMinute = 1000 * 60;
     Thread.Sleep(oneMinute);
 }
-
-/*
-
--- Number of distinct pirates on a voyage
-SELECT VoyageId, COUNT(PirateId) NumberOfPirates
-FROM JobbingActivities
-GROUP BY VoyageId
-
--- Crew/Flag breakdown of the jobbers on a voyage
-SELECT c.CrewId, c.CrewName, f.FlagId, f.FlagName, COUNT(DISTINCT p.PirateId) Pirates
-FROM JobbingActivities a
-JOIN Pirates p ON a.PirateId = p.PirateId
-JOIN Crews c ON p.CrewId = c.CrewId
-JOIN Flags f ON f.FlagId = c.FlagId
-WHERE VoyageId = 6
-GROUP BY c.CrewId, c.CrewName, f.FlagId, f.FlagName
-ORDER BY COUNT(DISTINCT p.PirateId) DESC 
-
--- Crews with most pirates on voyages
-;WITH VoyagesData AS (
-	SELECT v.VoyageId, v.CrewId, COUNT(DISTINCT ja.PirateId) PiratesCount
-	FROM Voyages v
-	JOIN JobbingActivities ja ON ja.VoyageId = v.VoyageId
-	GROUP BY v.VoyageId, v.CrewId
-)
-SELECT c.CrewId, c.CrewName, COUNT(DISTINCT v.VoyageID) VoyagesCount, SUM(PiratesCount) TotalPirates
-FROM VoyagesData v
-JOIN Crews c ON c.CrewId = v.CrewId
-GROUP BY c.CrewId, c.CrewName
-ORDER BY SUM(PiratesCount) DESC
-
--- Active Crews
-SELECT c.CrewId, c.CrewName, COUNT(*) ActivePiratesCount
-FROM Crews c
-JOIN Pirates p ON c.CrewId = p.CrewId
-GROUP BY c.CrewId, c.CrewName
-ORDER BY COUNT(*) DESC
-
-*/
-

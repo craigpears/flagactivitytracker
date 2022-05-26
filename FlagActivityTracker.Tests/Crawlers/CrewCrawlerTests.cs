@@ -55,9 +55,9 @@ namespace FlagActivityTracker.Tests.Crawlers
         }
 
         [Fact]
-        public void Should_Not_Trawl_Crews_More_Than_Once_Per_Hour()
+        public void Should_Not_Trawl_Crews_More_Than_Once_Every_Thirty_Minutes()
         {
-            _ctx.Crews.Single().LastParsedDate = DateTime.UtcNow.AddMinutes(-30);
+            _ctx.Crews.Single().LastParsedDate = DateTime.UtcNow.AddMinutes(-15);
             _ctx.SaveChanges();
 
             _crawler.GeneratePageScrapeRequests();

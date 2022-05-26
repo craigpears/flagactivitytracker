@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace FlagActivityTracker.Services
 {
@@ -60,26 +61,37 @@ namespace FlagActivityTracker.Services
                 };
 
                 request.PageUrl = pageUrl;
-                var proxyUrl = $"http://api.scraperapi.com?api_key=03339515441ba3541a70111efe98de57&url={pageUrl}";
+                var encodedPageUrl = HttpUtility.UrlEncode(pageUrl);
+                var proxyUrl = $"http://api.scraperapi.com?api_key=03339515441ba3541a70111efe98de57&url={pageUrl}";                        
+                // TODO: Put this in config + a secret
+                string proxyFunctionUrl = $"https://flagactivitytrackerscrapeproxy20220525194716.azurewebsites.net/api/ProxyScrapeCall?code=KUpNChbx8Ckx33jcGd8wFAvM3VEcizIXRqtZej8vyCAIAzFutMlmNw==&pageUrl={encodedPageUrl}";
+
 
                 try
                 {
                     try
                     {
                         // Try without the proxy first to save credits
+                        request.DownloadedHtml = httpClient.GetStringAsync(proxyFunctionUrl).Result;          
+                    }
+                    catch (Exception ex)
+                    {
                         request.DownloadedHtml = httpClient.GetStringAsync(pageUrl).Result;
                     }
-                    catch (Exception)
-                    {
-                        request.DownloadedHtml = httpClient.GetStringAsync(proxyUrl).Result;
-                    }
 
-                    request.DownloadedDate = DateTime.Now;
+                    // TODO: Control how often the proxy gets used - don't want to just burn through credits scanning low priority pages
+                    //request.DownloadedHtml = httpClient.GetStringAsync(proxyUrl).Result;  
+
+
+                    request.DownloadedDate = DateTime.UtcNow;
                     context.SaveChanges();
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception loading {pageUrl} - {ex.Message}");
+                    Console.WriteLine($"Exception scraping page {pageUrl} - {ex.Message} - sleeping...");
+                    Thread.Sleep(120000);
+                    Console.WriteLine("Waking up!");
+
                     request.Attempts++;
                     context.SaveChanges();
                 }

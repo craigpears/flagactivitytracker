@@ -30,8 +30,8 @@ namespace FlagActivityTracker
             {
                 var matchingVoyage = _ctx.Voyages
                     .FirstOrDefault(x => x.CrewId == activity.CrewId
-                                && x.StartTime.AddMinutes(-90) < activity.ActivityDate
-                                && x.EndTime.AddMinutes(90) > activity.ActivityDate);
+                                && x.StartTime.AddMinutes(-70) < activity.ActivityDate
+                                && x.EndTime.AddMinutes(70) > activity.ActivityDate);
 
                 if (matchingVoyage != null)
                 {
