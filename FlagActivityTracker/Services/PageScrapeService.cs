@@ -89,7 +89,7 @@ namespace FlagActivityTracker.Services
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Exception scraping page {pageUrl} - {ex.Message} - sleeping...");
-                    Thread.Sleep(120000);
+                    Thread.Sleep(TimeSpan.FromMinutes(1).Milliseconds);
                     Console.WriteLine("Waking up!");
 
                     request.Attempts++;

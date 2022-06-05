@@ -53,7 +53,7 @@ namespace FlagActivityTracker.Parsers
             string[] piracyCarousingSkills = { "Drinking", "Spades", "Hearts", "Treasure Drop", "Poker" };
             string[] piracyCraftingSkills = { "Distilling", "Alchemistry", "Shipwrightery", "Blacksmithing", "Foraging", "Weaving" };
 
-            parsedPiratePage.Stats.AddRange(piracySkillNames.Select(x =>
+            parsedPiratePage.Skills.AddRange(piracySkillNames.Select(x =>
                 new Skill
                 {
                     SkillType = SkillCategory.Piracy,
@@ -61,7 +61,7 @@ namespace FlagActivityTracker.Parsers
                 }
             ));
 
-            parsedPiratePage.Stats.AddRange(piracyCarousingSkills.Select(x =>
+            parsedPiratePage.Skills.AddRange(piracyCarousingSkills.Select(x =>
                 new Skill
                 {
                     SkillType = SkillCategory.Carousing,
@@ -69,7 +69,7 @@ namespace FlagActivityTracker.Parsers
                 }
             ));
 
-            parsedPiratePage.Stats.AddRange(piracyCraftingSkills.Select(x =>
+            parsedPiratePage.Skills.AddRange(piracyCraftingSkills.Select(x =>
                 new Skill
                 {
                     SkillType = SkillCategory.Crafting,
@@ -77,9 +77,9 @@ namespace FlagActivityTracker.Parsers
                 }
             ));
 
-            foreach (var stat in parsedPiratePage.Stats)
+            foreach (var stat in parsedPiratePage.Skills)
             {
-                var statImg = xmlDoc.SelectSingleNode($"//img[contains(@alt,'{stat.SkillName}')]");
+                var statImg = xmlDoc.SelectSingleNode($"//img[@alt='{stat.SkillName}']");
                 var fontNode = statImg.ParentNode.ParentNode.NextSibling.ChildNodes[0];
                 var numberOfChildNodes = fontNode.ChildNodes.Count;
                 if (numberOfChildNodes == 1)
@@ -92,19 +92,19 @@ namespace FlagActivityTracker.Parsers
                         .ToArray();
 
                     var experienceName = words[0];
-                    var rankName = words[1];
+                    var ratingName = words[1];
 
-                    stat.Experience = Enum.Parse<PiracyExperience>(experienceName);
-                    stat.Rank = Enum.Parse<PiracyRank>(rankName);
+                    stat.Experience = Enum.Parse<SkillExperience>(experienceName);
+                    stat.Rating = Enum.Parse<SkillRating>(ratingName);
                 }
                 else
                 {
                     // Deal with stats where one or both are in bold
                     var experienceName = StripTags(fontNode.ChildNodes[0].InnerText);
-                    var rankName = StripTags(fontNode.ChildNodes[numberOfChildNodes - 1].InnerText);
+                    var ratingName = StripTags(fontNode.ChildNodes[numberOfChildNodes - 1].InnerText);
 
-                    stat.Experience = Enum.Parse<PiracyExperience>(experienceName);
-                    stat.Rank = Enum.Parse<PiracyRank>(rankName);
+                    stat.Experience = Enum.Parse<SkillExperience>(experienceName);
+                    stat.Rating = Enum.Parse<SkillRating>(ratingName);
                 }
 
             }

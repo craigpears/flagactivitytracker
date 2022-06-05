@@ -46,6 +46,12 @@
     <None Update="Parsers\Samples\no_crew.pirate.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Parsers\Samples\pafsie.pirate.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Parsers\Samples\rytastic.pirate.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Parsers\Samples\umami.pirate.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

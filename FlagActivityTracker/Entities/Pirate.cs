@@ -14,5 +14,6 @@ namespace FlagActivityTracker.Entities
         public string PirateName { get; set; }
         public Crew? Crew { get; set; }
         public List<JobbingActivity> JobbingActivities { get; set; } = new List<JobbingActivity>();
+        public List<Skill> Skills { get; set; }
     }
 }

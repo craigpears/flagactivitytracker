@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FlagActivityTracker.Models
+namespace FlagActivityTracker.Entities
 {
-    public enum PiracyExperience
+    public enum SkillExperience
     {
         Novice = 0,
         Neophyte = 1,

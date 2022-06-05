@@ -79,3 +79,45 @@ while(true)
     var oneMinute = 1000 * 60;
     Thread.Sleep(oneMinute);
 }
+
+
+/*
+ * 
+ 
+-- Minute by minute jobbing levels for voyages
+;WITH ActivityDates AS (
+	SELECT DISTINCT DATEADD(minute, DATEDIFF(minute, 0, ActivityDate), 0) RoundedActivityDate 
+	FROM JobbingActivities ja 
+	WHERE VoyageId IN (596, 588)
+)
+SELECT RoundedActivityDate,
+(SELECT COUNT(DISTINCT PirateId) FROM JobbingActivities WHERE RoundedActivityDate = DATEADD(minute, DATEDIFF(minute, 0, ActivityDate), 0) AND VoyageId = 596) 'Souless Hunters Jobbers',
+(SELECT COUNT(DISTINCT PirateId) FROM JobbingActivities WHERE RoundedActivityDate = DATEADD(minute, DATEDIFF(minute, 0, ActivityDate), 0) AND VoyageId = 588) 'Norse Warriors Jobbers'
+FROM ActivityDates ad
+ORDER BY RoundedActivityDate DESC
+
+-- Voyage breakdown by flag
+SELECT f.FlagName, COUNT(DISTINCT p.PirateId) Jobbers
+FROM JobbingActivities ja
+JOIN Pirates p ON ja.PirateId = p.PirateID
+JOIN Crews c ON c.CrewId = p.CrewId
+JOIN Flags f ON f.FlagId = c.FlagId
+WHERE VoyageID = 596
+GROUP BY f.FlagName
+ORDER BY COUNT(DISTINCT p.PirateId) DESC
+
+-- Voyage jobber quality breakdown by flag
+SELECT f.FlagName, COUNT(DISTINCT p.PirateId) Jobbers, SUM(s.Rating) TotalJobberQuality
+FROM JobbingActivities ja
+JOIN Pirates p ON ja.PirateId = p.PirateID
+JOIN Skill s ON s.PirateId = p.PirateId
+JOIN Crews c ON c.CrewId = p.CrewId
+JOIN Flags f ON f.FlagId = c.FlagId
+WHERE VoyageID = 588
+AND s.SkillType = 0
+GROUP BY f.FlagName
+ORDER BY SUM(s.Rating) DESC
+
+-- TODO: Breakdowns by round?
+
+*/

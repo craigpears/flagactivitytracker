@@ -50,6 +50,22 @@ namespace FlagActivityTracker.Migrations
                 JOIN Pirates p ON c.CrewId = p.CrewId
                 GROUP BY c.CrewId, c.CrewName, f.FlagId, f.FlagName
             ");
+
+            migrationBuilder.Sql(@"
+                CREATE VIEW vPiratesWithoutNonPiracyExperience
+                AS
+
+                SELECT *
+                FROM Pirates p
+                WHERE NOT EXISTS(
+	                SELECT TOP 1 1
+	                FROM Skill s
+	                WHERE SkillType IN (1,2)
+	                AND s.PirateId = p.PirateId
+	                AND s.Experience > 3
+                )
+                AND PirateId IN (SELECT PirateId FROM Skill)
+            ");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -58,6 +74,8 @@ namespace FlagActivityTracker.Migrations
             migrationBuilder.Sql("DROP VIEW vLargeVoyages");
             migrationBuilder.Sql("DROP VIEW vPirateLargeVoyageCounts");
             migrationBuilder.Sql("DROP VIEW vCrews");
+            migrationBuilder.Sql("DROP VIEW vCrews");
+            migrationBuilder.Sql("DROP VIEW vPiratesWithoutNonPiracyExperience");
 
         }
     }

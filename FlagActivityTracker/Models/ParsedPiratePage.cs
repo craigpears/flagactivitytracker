@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FlagActivityTracker.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,6 @@ namespace FlagActivityTracker.Models
         public int? PPCrewId { get; set; }
         public int? PPFlagId { get; set; }
         public bool IndependentPirate { get; set; }
-        public List<Skill> Stats { get; set; } = new();
+        public List<Skill> Skills { get; set; } = new();
     }
 }

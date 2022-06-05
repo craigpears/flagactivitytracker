@@ -61,6 +61,8 @@ namespace FlagActivityTracker.Crawlers
 
                 var pirate = _ctx.Pirates.Single(x => x.PirateId == pageScrape.EntityId);
                 var parsedPiratePage = _piratePageParser.ParsePage(pageScrape.DownloadedHtml);
+                pirate.Skills = parsedPiratePage.Skills;
+                pirate.Skills.ForEach(x => x.PirateId = pirate.PirateId);
 
                 if (parsedPiratePage.PPCrewId != null)
                 {

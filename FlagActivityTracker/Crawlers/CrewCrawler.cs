@@ -44,16 +44,22 @@ namespace FlagActivityTracker.Crawlers
 
             // TODO: Scan flag pages and get jobbing numbers from there rather than crews to cut down on page requests?
 
+            var currentLargeVoyages = _ctx.Voyages.Where(x => x.JobbingActivities.Select(y => y.PirateId).Distinct().Count() > 20 && x.EndTime > thirtyMinutesAgo).ToList();
+            var currentLargeVoyageCrewIds = currentLargeVoyages.Select(x => x.CrewId).Distinct().ToList(); // TODO: Add test
+
+            var currentLargeVoyageCrews = _ctx.Crews.Where(x => currentLargeVoyageCrewIds.Contains(x.CrewId));
+
             var crewsToRefresh = _ctx.Crews.Where(x =>
-                   (x.LastParsedDate == null || x.LastParsedDate < thirtyMinutesAgo) && x.DeletedDate == null
+                   (x.LastParsedDate == null || x.LastParsedDate < thirtyMinutesAgo) 
+                   && x.DeletedDate == null
                    && x.Voyages.Any()
             )
-                .OrderByDescending(x => x.Voyages.Count)  // TODO: Add test + time limit the voyages?
-                                                          // TODO: Prioritise large voyages over numerous ones
+                .OrderByDescending(x => x.Voyages.Count) 
+                .Take(10)
                 .ToList();
 
             var crews = new List<Crew>();
-            //crews.AddRange(activelyJobbingCrews); // TODO: Put this back in later, we just want to work out which are the crews with any activity for now
+            crews.AddRange(currentLargeVoyageCrews);
             crews.AddRange(crewsToRefresh);
 
             // If there aren't many, pick some random crews to scan

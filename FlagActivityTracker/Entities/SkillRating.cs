@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FlagActivityTracker.Models
+namespace FlagActivityTracker.Entities
 {
-    public enum PiracyRank
+    public enum SkillRating
     {
         Able = 1,
         Proficient = 2,
